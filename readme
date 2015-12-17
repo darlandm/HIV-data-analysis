@@ -1,0 +1,16 @@
+config.sh= setting up files and directories
+1_align= using the bwa mem alignment
+2_coverage= generate data for HIV coverage
+3_summarize= generate a tab file for coverage data to plot in R
+4a_DUP= remove duplications with samtools and piccard
+4b_vcf= freebayes and vcffilter
+5_count.vcf= command lines for pulling relevant info from vcf files
+6_fasta.sh= pull fasta seq for 5bp around mutation sites
+7_chimera-generate bed and bg files for chimera sites
+8_discord=generate bed and bg files for discordant sites
+9_segmentation = segmentation analysis for chimeras/discordant
+9b_score.sh= generates a score file
+9c_score.sh1=generate a summary discordant file
+9c_score.sh2=generates a summanry chimera file
+file_counts.sh= generates counts for all files
+run.fastqc.sh= runs fastc analysis on all samples
