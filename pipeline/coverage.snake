@@ -1,0 +1,58 @@
+'''rules for alignment and coverage generatation'''
+
+rule align:
+    input:
+        'raw/{sample}.trim.fq.gz'
+    output:
+        'alignment/{sample}/{sample}.bam'
+    params:
+        sample = '{sample}',
+        job_name = 'align.{sample}'
+    threads: 6
+    log:
+        'logs/{sample}/align.log
+    shell:
+        "bwa mem --local -p{threads} {BWAIDX} -U{input}"
+        "|samtools view -ShuF4 -"
+        "|samtools sort -o - alignment/{params.sample}.temp -m 8g"
+        ">{output} && samtools index {output}"
+
+
+rule bp_coverage:
+    input: 
+        'alignment/{sample}/{sample}.bam'
+    output:
+        'coverage/{sample}/{sample}.{strand}.bg.gz'
+    params:
+        strand_arg=lambda wildcards: STRANDS[wildcards.strand],
+        job_name = 'coverage.{sample}.{strand}', 
+        doc = "determine coverage for each strand"
+    log:
+        'logs/{sample}/coverage.log'
+    shell:
+        "bedtools genomecov -ibam {input} -g {CHROMSIZE} -bg "
+        "{params.strand_arg}"
+        "|bedtools sort -i -"
+        "|gzip -c > {output}"
+ # is this needed for a combined bedgraph?
+ def merge_coverage_input(wildcards):
+    filebase='coverage/{sample}/{sample}.{strand}.bg.gz'
+    return [filebase.format(sample=wildcards.sample,
+                            strand=wildcards.strand)]
+
+# is this needed for a combined bedgraph?
+rule merge_coverage:
+    input:merge_coverage_input
+    output:
+        'coverage/{sample}/{sample}.combined.{strand}.bg.gz'
+    params:
+        job_name = 'merge_coverage.{sample}.{strand}',
+        doc = "combine coverage of ends into a merged bedgraph file"
+    shell:
+        "bedtools unionbedg -i {input} "
+        "| awk -v OFS='\t' '{{print $1, $2, $3, $4 + $5}}' "
+        "| bedtools sort -i - "
+        "| gzip -c > {output}"
+
+# figure out how to do the summary call
+:

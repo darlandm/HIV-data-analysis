@@ -1,0 +1,51 @@
+'''rules to download files from geo and process'''
+
+# XXX uncomment for download jobs to run on head node
+
+localrules: download_sra
+
+rule download_sra:
+    output:
+        '/raw/{sample}.sra'
+        '/raw/{sample}.sra'
+    log:
+        'logs/{sample}/download_sra.{sample}.log'
+    params:
+        job_name='download_sra',
+        url= lambda wildcards: SAMPLE_INFO[wildcards.sample].url
+
+    shell:
+        'wget -nv -o {log} -O {output}{params.url'
+
+
+rule sra_to_fastq:
+    input: 
+        'raw/{sample}.sra'
+    output:
+        'raw/{sample}.fq.gz' 
+        #Do I need to deal with R1 vs R2
+    log:
+        'logs/{sample}/fastq.{sample}.log'
+    params:
+        job_name ='sra_to_fastq.{sample}'
+    shell:
+        'fastq-dump -I --split-files --gzip -O raw{input}'
+
+
+rule fastq_trim:
+    input:
+        'raw/{sample}.R1.fq.gz'
+    output:
+        'raw/{sample}.R1.trim.fq.gz'
+    log:
+        'logs/{sample}/fastq.{sample}.log'
+    params:
+        job_name= 'fastq_trim.{sample}'
+    #this needs help to be formatted correctly
+    shell:
+        'java -jar ~/bin/Trimmomatic-0.35/trimmomatic-0.35.jar PE $read1
+        $read2 $sample.R1.trim.fq.gz \
+        unpaired/$sample.R1.un.fq.gz $sample.R2.trim.fq.gz
+        unpaired/$sample.R2.un.fq.gz \
+        HEADCROP:2'
+

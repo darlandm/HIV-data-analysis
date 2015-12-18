@@ -1,0 +1,24 @@
+'''Snakefile for HIV analysis'''
+
+__author__ = 'Monica Ransom <monica.ransom@ucdenver.edu>'
+
+from datetime import date
+today = date.today().isoformat()
+workdir: 'results-hiv/%s' % today
+
+STRANDS = {'pos':'-strand +', 'neg':'-strand -'}
+SIDES = {'5p':'-5', '3p':'-3'}
+SCORES = ('A','B','C')
+
+FASTA = config['FASTA'] 
+BWAIDX = config['BWAIDX'] 
+CHROMSIZE = config['CHROMSIZE']
+
+from collections import namedtuple
+sample_info = namedtuple('sample_info', ['description', 'url'])
+SAMPLE_INFO = {id:sample_info(description, url) for id, description, url in 
+               zip(config['samples'], config['descriptions'],
+               config['urls'])}
+rule all:
+    input:
+        expand('coverage
