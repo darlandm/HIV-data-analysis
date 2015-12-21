@@ -6,8 +6,7 @@ localrules: download_sra
 
 rule download_sra:
     output:
-        '/raw/{sample}.sra'
-        '/raw/{sample}.sra'
+        'raw/{sample}.sra'
     log:
         'logs/{sample}/download_sra.{sample}.log'
     params:
@@ -15,14 +14,15 @@ rule download_sra:
         url= lambda wildcards: SAMPLE_INFO[wildcards.sample].url
 
     shell:
-        'wget -nv -o {log} -O {output}{params.url'
+        'wget -nv -o {log} -O {output}{params.url}'
 
 
 rule sra_to_fastq:
     input: 
         'raw/{sample}.sra'
     output:
-        'raw/{sample}.fq.gz' 
+        'raw/{sample}.R1.fq.gz',
+        'raw/{sample}.R2.fq.gz' 
         #Do I need to deal with R1 vs R2
     log:
         'logs/{sample}/fastq.{sample}.log'
@@ -32,9 +32,15 @@ rule sra_to_fastq:
         'fastq-dump -I --split-files --gzip -O raw{input}'
 
 
+rule make_trim_filenames:
+    pass
+    
+#will want a rule here dealing with the other trimming parameter
+
 rule fastq_trim:
     input:
-        'raw/{sample}.R1.fq.gz'
+        make_trim_filenames
+        # 'raw/{sample}.R1.fq.gz'
     output:
         'raw/{sample}.R1.trim.fq.gz'
     log:
@@ -43,9 +49,12 @@ rule fastq_trim:
         job_name= 'fastq_trim.{sample}'
     #this needs help to be formatted correctly
     shell:
-        'java -jar ~/bin/Trimmomatic-0.35/trimmomatic-0.35.jar PE $read1
-        $read2 $sample.R1.trim.fq.gz \
-        unpaired/$sample.R1.un.fq.gz $sample.R2.trim.fq.gz
-        unpaired/$sample.R2.un.fq.gz \
-        HEADCROP:2'
+        
+        '{TRIMMOMATIC} PE {input} HEADCROP:2'
+
+        #'java -jar ~/bin/Trimmomatic-0.35/trimmomatic-0.35.jar PE $read1
+        #$read2 $sample.R1.trim.fq.gz \
+        #unpaired/$sample.R1.un.fq.gz $sample.R2.trim.fq.gz
+        #npaired/$sample.R2.un.fq.gz \
+        # HEADCROP:2'
 

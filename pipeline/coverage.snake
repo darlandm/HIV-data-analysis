@@ -10,7 +10,7 @@ rule align:
         job_name = 'align.{sample}'
     threads: 6
     log:
-        'logs/{sample}/align.log
+        'logs/{sample}/align.log'
     shell:
         "bwa mem --local -p{threads} {BWAIDX} -U{input}"
         "|samtools view -ShuF4 -"
@@ -18,22 +18,40 @@ rule align:
         ">{output} && samtools index {output}"
 
 
-rule bp_coverage:
+rule coverage_bedgraph:
     input: 
         'alignment/{sample}/{sample}.bam'
     output:
-        'coverage/{sample}/{sample}.{strand}.bg.gz'
+        'coverage/{sample}/{sample}.strand.{strand}.bg.gz'
     params:
         strand_arg=lambda wildcards: STRANDS[wildcards.strand],
-        job_name = 'coverage.{sample}.{strand}', 
+        job_name = 'coverage.bg.{sample}.{strand}', 
         doc = "determine coverage for each strand"
     log:
-        'logs/{sample}/coverage.log'
+        'logs/{sample}/coverage.bg.log'
     shell:
         "bedtools genomecov -ibam {input} -g {CHROMSIZE} -bg "
         "{params.strand_arg}"
         "|bedtools sort -i -"
         "|gzip -c > {output}"
+
+rule coverage_table:
+    input: 
+        'alignment/{sample}/{sample}.bam'
+    output:
+        'coverage/{sample}/{sample}.strand.{strand}.tab.gz'
+    params:
+        strand_arg=lambda wildcards: STRANDS[wildcards.strand],
+        job_name = 'coverage.tab.{sample}.{strand}', 
+        doc = "determine coverage for each strand"
+    log:
+        'logs/{sample}/coverage.tab.log'
+    shell:
+        "bedtools genomecov -ibam {input} -g {CHROMSIZE} "
+        "{params.strand_arg}"
+        "|bedtools sort -i -"
+        "|gzip -c > {output}"
+
  # is this needed for a combined bedgraph?
  def merge_coverage_input(wildcards):
     filebase='coverage/{sample}/{sample}.{strand}.bg.gz'
@@ -54,5 +72,27 @@ rule merge_coverage:
         "| bedtools sort -i - "
         "| gzip -c > {output}"
 
+
 # figure out how to do the summary call
-:
+rule make_summary_table:
+    input:
+        'summary/{sample}/{sample}.strand.{strand}.counts.tab.gz'
+    output:
+        'summary/combined.tab.gz'
+    params:
+        treatment=lambda wildcards: TREATMENTS[wildcards.sample],
+        expname=lambda wildcards: EXP_NAMES[wildcards.sample],
+        # hyb=lambda wildcards: HYBS[wildcards.sample],
+        hyb='hyb'
+    shell:
+        '''
+        zcat {input} | awk '$1 == "HIV"'
+            | awk -v strand={strand} -v sample={sample}
+                  -v treatment={params.treatment}
+                  -v hyb={params.hyb}
+                  -v expname="{params.expname}" -v scale="raw"
+                'BEGIN {OFS="\t"}
+                    {print $2, $3, sample, strand,  treatment,
+                     hyb, expname, scale}'
+        '''
+

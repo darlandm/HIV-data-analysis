@@ -1,0 +1,48 @@
+geo_acc:  GSE76091  
+
+descrip:  Samples from HIV-seq study
+
+samples:
+    - GSM1974055
+    - GSM1974056
+    - GSM1974057
+    - GSM1974058
+    - GSM1974059
+    - GSM1974060
+    - GSM1974061
+    - GSM1974062
+    - GSM1974063
+    - GSM1974064
+
+description:
+    - MDM no infection -UDG
+    - MDM no infection +UDG
+    - MDM Day 7 -UDG
+    - MDM Day 7 +UDG
+    - MDM Day 14 -UDG
+    - MDM Day 14 +UDG
+    - HT29-UGI 0nM RTX -UDG
+    - HT29-UGI 0nM RTX +UDG
+    - HT29-UGI 50nM RTX -UDG
+    - HT29-UGI 50nM RTX +UDG
+
+urls:
+    put urls in here
+
+treatment:
+    -none
+    -UDG
+
+expname: 
+    -"1:-V MDM"
+    -"2:V MDM DP7"
+    -"3:V MDM DP14"
+    -"4:V HT29-UGI OnM"
+    -"5:V HT29-UGI 50nM"
+
+FASTA="/vol3/home/ransom/projects/mutation-mapping/results/hiv.ref/hg19-hiv.lines.fa"
+BWAIDX="/vol3/home/ransom/projects/mutation-mapping/results/hiv.ref/hg19-hiv.fa"
+CHROM_SIZES="/vol3/ransom/projects/mutation-mapping/results/hiv.ref/hg19.hiv.chrom.sizes"
+
+
+
